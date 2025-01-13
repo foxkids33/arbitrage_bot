@@ -1,13 +1,11 @@
 # main.py
 from web3 import Web3
-from config import (
-    INFURA_URL, ROUTERS,
-    TELEGRAM_TOKEN, TELEGRAM_CHAT_ID
-)
+from config import INFURA_URL, ROUTERS, TELEGRAM_TOKEN
 from tokens import TRADING_PAIRS
 from exchanges import Exchange
 from monitor import PriceMonitor
 from telegram_handler import TelegramHandler
+import time
 
 
 def main():
@@ -22,7 +20,13 @@ def main():
 
     try:
         # Initialize Telegram handler
-        telegram = TelegramHandler(TELEGRAM_TOKEN, TELEGRAM_CHAT_ID)
+        telegram = TelegramHandler(TELEGRAM_TOKEN)
+
+        # Start Telegram bot
+        telegram.run()
+
+        # Give Telegram bot time to start
+        time.sleep(2)
 
         # Initialize exchanges
         exchanges = {
@@ -30,13 +34,13 @@ def main():
             for name, address in ROUTERS.items()
         }
 
-        # Create price monitor with Telegram support
+        # Create and start price monitor
         monitor = PriceMonitor(web3, exchanges, TRADING_PAIRS, telegram)
 
         # Print startup info
         print(f"\n🚀 Starting arbitrage bot...")
         print(f"📊 Monitoring {len(TRADING_PAIRS)} pairs across {len(exchanges)} exchanges")
-        print("Updates will be sent to Telegram")
+        print("Bot is ready! Users can start bot with /start command")
         print("Press Ctrl+C to stop\n")
 
         # Start monitoring

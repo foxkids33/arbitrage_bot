@@ -33,22 +33,20 @@ class Exchange:
             quote_amount = amounts[1] / (10 ** pair.quote.decimals)
 
             # Calculate price
-            price = quote_amount / amount
-
-            # Sanity check for WBTC prices (should be roughly between 20k and 100k)
-            if pair.base.symbol == "WBTC" and (price < 20000 or price > 100000):
-                print(f"Warning: Suspicious WBTC price from {self.name}: ${price:.2f}")
-                return None
-
-            return price
+            return quote_amount / amount
 
         except Exception as e:
-            if "no data" in str(e):
-                # This means the pair doesn't exist on this exchange
-                print(f"Info: Pair {pair} not available on {self.name}")
-            else:
-                print(f"Error getting price from {self.name}: {str(e)}")
+            print(f"Error getting price from {self.name}: {str(e)}")
             return None
+
+    def check_pair_exists(self, pair: TradingPair) -> bool:
+        """Check if a trading pair exists on this exchange"""
+        try:
+            test_amount = pair.min_amount
+            price = self.get_price(pair, test_amount)
+            return price is not None
+        except:
+            return False
 
     def get_formatted_price(self, pair: TradingPair, amount: float) -> str:
         """Get formatted price string"""
@@ -56,12 +54,3 @@ class Exchange:
         if price:
             return f"{self.name}: {price:.2f} {pair.quote.symbol}"
         return f"{self.name}: Not available"
-
-    def check_pair_exists(self, pair: TradingPair) -> bool:
-        """Check if a trading pair exists on this exchange"""
-        try:
-            # Try to get price for minimum amount
-            price = self.get_price(pair, pair.min_amount)
-            return price is not None
-        except:
-            return False
